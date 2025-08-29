@@ -1,4 +1,8 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+/**
+ * Plugin LocalLightingVolume
+ *		Allow to modify global Light Component such as Sky Light & Directional Light when View Point in the range of Volume.
+ * Copyright TA.Jiahao.Chan, Inc. All Rights Reserved.
+ */
 
 #pragma once
 
@@ -7,8 +11,6 @@
 class FLocalLightingVolumeModule : public IModuleInterface
 {
 public:
-
-	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 };

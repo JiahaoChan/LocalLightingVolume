@@ -1,4 +1,8 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+/**
+ * Plugin LocalLightingVolume
+ *		Allow to modify global Light Component such as Sky Light & Directional Light when View Point in the range of Volume.
+ * Copyright TA.Jiahao.Chan, Inc. All Rights Reserved.
+ */
 
 #include "LocalLightingVolume.h"
 
@@ -6,15 +10,14 @@
 
 void FLocalLightingVolumeModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+
 }
 
 void FLocalLightingVolumeModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
+
 }
 
 #undef LOCTEXT_NAMESPACE
-	
+
 IMPLEMENT_MODULE(FLocalLightingVolumeModule, LocalLightingVolume)
