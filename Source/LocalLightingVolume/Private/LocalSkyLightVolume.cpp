@@ -12,14 +12,18 @@
 
 #include "LocalLightingSubsystem.h"
 
+/**
+ * Had better to add this function into Engine
+ *		void USkyLightComponent::SetLowerHemisphereIsBlack(bool InbLowerHemisphereIsBlack)
+ */
 void SetLowerHemisphereIsBlack(USkyLightComponent* SkyLightComponent, bool InbLowerHemisphereIsBlack)
 {
 	if (!SkyLightComponent)
 	{
 		return;
 	}
-	// Can't set on a static light
 	
+	// Can't set on a static light
 	auto AreDynamicDataChangesAllowed = [](const USkyLightComponent* Component, bool bIgnoreStationary = true)
 	{
 		if (!Component)
@@ -177,10 +181,6 @@ void ALocalSkyLightVolume::OverrideLighting()
 			bCacheLowerHemisphereIsBlack = SkyLight->GetLightComponent()->bLowerHemisphereIsBlack;
 			if (bCacheLowerHemisphereIsBlack != bLowerHemisphereIsBlack)
 			{
-				/**
-				 * Had better to add this function into Engine
-				 *		void USkyLightComponent::SetLowerHemisphereIsBlack(bool InbLowerHemisphereIsBlack)
-				 */
 				SetLowerHemisphereIsBlack(SkyLight->GetLightComponent(), bLowerHemisphereIsBlack);
 				bOverridingLighting |= true;
 			}
@@ -242,10 +242,6 @@ void ALocalSkyLightVolume::RestoreLighting()
 		{
 			if (bCacheLowerHemisphereIsBlack != bLowerHemisphereIsBlack)
 			{
-				/**
-				 * Had better to add this function into Engine
-				 *		void USkyLightComponent::SetLowerHemisphereIsBlack(bool InbLowerHemisphereIsBlack)
-				 */
 				SetLowerHemisphereIsBlack(SkyLight->GetLightComponent(), bCacheLowerHemisphereIsBlack);
 			}
 		}
@@ -358,10 +354,6 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 				{
 					if (bCacheLowerHemisphereIsBlack != bLowerHemisphereIsBlack)
 					{
-						/**
-						 * Had better to add this function into Engine
-						 *		void USkyLightComponent::SetLowerHemisphereIsBlack(bool InbLowerHemisphereIsBlack)
-						 */
 						SetLowerHemisphereIsBlack(CacheSkyLight->GetLightComponent(), bCacheLowerHemisphereIsBlack);
 					}
 				}
@@ -483,18 +475,10 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 					{
 						bCacheLowerHemisphereIsBlack = SkyLight->GetLightComponent()->bLowerHemisphereIsBlack;
 					}
-					/**
-					 * Had better to add this function into Engine
-					 *		void USkyLightComponent::SetLowerHemisphereIsBlack(bool InbLowerHemisphereIsBlack)
-					 */
 					SetLowerHemisphereIsBlack(SkyLight->GetLightComponent(), bLowerHemisphereIsBlack);
 				}
 				else
 				{
-					/**
-					 * Had better to add this function into Engine
-					 *		void USkyLightComponent::SetLowerHemisphereIsBlack(bool InbLowerHemisphereIsBlack)
-					 */
 					SetLowerHemisphereIsBlack(SkyLight->GetLightComponent(), bCacheLowerHemisphereIsBlack);
 				}
 			}
