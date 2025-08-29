@@ -1,0 +1,54 @@
+/**
+ * Plugin LocalLightingVolume
+ *		Allow to modify global Light Component such as Sky Light & Directional Light when View Point in the range of Volume.
+ * Copyright TA.Jiahao.Chan, Inc. All Rights Reserved.
+ */
+
+#include "LocalLightingSubsystem.h"
+
+#include "Subsystems/SubsystemBlueprintLibrary.h"
+
+ULocalLightingSubsystem::ULocalLightingSubsystem()
+{
+	
+}
+
+void ULocalLightingSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	
+	Volumes.Reset();
+}
+
+ULocalLightingSubsystem* ULocalLightingSubsystem::Get(UObject* WorldContextObject)
+{
+	ULocalLightingSubsystem* Subsystem = Cast<ULocalLightingSubsystem>(USubsystemBlueprintLibrary::GetWorldSubsystem(WorldContextObject, StaticClass()));
+	return Subsystem;
+}
+
+void ULocalLightingSubsystem::ProcessVolume(const FVector& ViewPoint)
+{
+	for (IInterface_LocalLightingVolume* Volume : Volumes)
+	{
+		if (Volume)
+		{
+			Volume->Process(ViewPoint);
+		}
+	}
+}
+
+void ULocalLightingSubsystem::RegisterVolume(IInterface_LocalLightingVolume* Volume)
+{
+	if (Volume)
+	{
+		Volumes.AddUnique(Volume);
+	}
+}
+
+void ULocalLightingSubsystem::UnregisterVolume(IInterface_LocalLightingVolume* Volume)
+{
+	if (Volume)
+	{
+		Volumes.Remove(Volume);
+	}
+}
