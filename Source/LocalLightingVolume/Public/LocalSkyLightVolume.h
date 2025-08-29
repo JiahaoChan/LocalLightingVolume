@@ -82,6 +82,8 @@ protected:
 	bool bViewPointInVolume;
 	bool bOverridingLighting;
 	
+	UPROPERTY(Transient)
+	TWeakObjectPtr<ASkyLight> CacheSkyLight;
 	bool bCacheRealTimeCapture;
 	TEnumAsByte<ESkyLightSourceType> CacheSourceType;
 	UPROPERTY(Transient)
@@ -90,6 +92,14 @@ protected:
 	FColor CacheLightColor;
 	bool bCacheLowerHemisphereIsBlack;
 	FLinearColor CacheLowerHemisphereColor;
+	
+	uint8 bCacheOverride_bRealTimeCapture:1;
+	uint8 bCacheOverride_SourceType:1;
+	uint8 bCacheOverride_Cubemap:1;
+	uint8 bCacheOverride_Intensity:1;
+	uint8 bCacheOverride_LightColor:1;
+	uint8 bCacheOverride_bLowerHemisphereIsBlack:1;
+	uint8 bCacheOverride_LowerHemisphereColor:1;
 	
 public:
 	//~ Begin IInterface_LocalLightingVolume Interface
@@ -100,6 +110,11 @@ public:
 	virtual void UnregisterFromSubsystem() override;
 	//~ End IInterface_LocalLightingVolume Interface
 	
+private:
+	void OverrideLighting();
+	void RestoreLighting();
+	
+public:
 	//~ Begin AActor Interface
 	virtual void PostRegisterAllComponents() override;
     virtual void PostUnregisterAllComponents() override;
@@ -107,8 +122,9 @@ public:
 	
     //~ Begin UObject Interface
 #if WITH_EDITOR
+	virtual void PreEditChange(FProperty* PropertyAboutToChange) override;
     virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
     virtual bool CanEditChange(const FProperty* InProperty) const override;
-#endif // WITH_EDITOR	
+#endif // WITH_EDITOR
     //~ End UObject Interface
 };
