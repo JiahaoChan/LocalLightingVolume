@@ -62,6 +62,8 @@ ALocalSkyLightVolume::ALocalSkyLightVolume(const FObjectInitializer& ObjectIniti
 	Cubemap = nullptr;
 	Intensity = 1.0f;
 	LightColor = FColor::White;
+	IndirectLightingIntensity = 1.0f;
+	VolumetricScatteringIntensity = 1.0f;
 	bLowerHemisphereIsBlack = true;
 	LowerHemisphereColor = FLinearColor::Black;
 	
@@ -74,16 +76,22 @@ ALocalSkyLightVolume::ALocalSkyLightVolume(const FObjectInitializer& ObjectIniti
 	CacheCubemap = nullptr;
 	CacheIntensity = 1.0f;
 	CacheLightColor = FColor::White;
+	CacheIndirectLightingIntensity = 1.0f;
+	CacheVolumetricScatteringIntensity = 1.0f;
 	bCacheLowerHemisphereIsBlack = true;
 	CacheLowerHemisphereColor = FLinearColor::Black;
 	
+#if WITH_EDITORONLY_DATA
 	bCacheOverride_bRealTimeCapture = false;
 	bCacheOverride_SourceType = false;
 	bCacheOverride_Cubemap = false;
 	bCacheOverride_Intensity = false;
 	bCacheOverride_LightColor = false;
+	bCacheOverride_IndirectLightingIntensity = false;
+	bCacheOverride_VolumetricScatteringIntensity = false;
 	bCacheOverride_bLowerHemisphereIsBlack = false;
 	bCacheOverride_LowerHemisphereColor = false;
+#endif
 }
 
 void ALocalSkyLightVolume::Process(const FVector& ViewPoint)
@@ -176,6 +184,24 @@ void ALocalSkyLightVolume::OverrideLighting()
 				bOverridingLighting |= true;
 			}
 		}
+		if (bOverride_IndirectLightingIntensity)
+		{
+			CacheIndirectLightingIntensity = SkyLight->GetLightComponent()->IndirectLightingIntensity;
+			if (CacheIndirectLightingIntensity != IndirectLightingIntensity)
+			{
+				SkyLight->GetLightComponent()->SetIndirectLightingIntensity(IndirectLightingIntensity);
+				bOverridingLighting |= true;
+			}
+		}
+		if (bOverride_VolumetricScatteringIntensity)
+		{
+			CacheVolumetricScatteringIntensity = SkyLight->GetLightComponent()->VolumetricScatteringIntensity;
+			if (CacheVolumetricScatteringIntensity != VolumetricScatteringIntensity)
+			{
+				SkyLight->GetLightComponent()->SetVolumetricScatteringIntensity(VolumetricScatteringIntensity);
+				bOverridingLighting |= true;
+			}
+		}
 		if (bOverride_bLowerHemisphereIsBlack)
 		{
 			bCacheLowerHemisphereIsBlack = SkyLight->GetLightComponent()->bLowerHemisphereIsBlack;
@@ -238,6 +264,20 @@ void ALocalSkyLightVolume::RestoreLighting()
 				SkyLight->GetLightComponent()->SetLightColor(FLinearColor::FromSRGBColor(CacheLightColor));
 			}
 		}
+		if (bOverride_IndirectLightingIntensity)
+		{
+			if (CacheIndirectLightingIntensity != IndirectLightingIntensity)
+			{
+				SkyLight->GetLightComponent()->SetIndirectLightingIntensity(CacheIndirectLightingIntensity);
+			}
+		}
+		if (bOverride_VolumetricScatteringIntensity)
+		{
+			if (CacheVolumetricScatteringIntensity != VolumetricScatteringIntensity)
+			{
+				SkyLight->GetLightComponent()->SetVolumetricScatteringIntensity(CacheVolumetricScatteringIntensity);
+			}
+		}
 		if (bOverride_bLowerHemisphereIsBlack)
 		{
 			if (bCacheLowerHemisphereIsBlack != bLowerHemisphereIsBlack)
@@ -285,6 +325,8 @@ void ALocalSkyLightVolume::PreEditChange(FProperty* PropertyAboutToChange)
 			PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalSkyLightVolume, Cubemap) ||
 			PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalSkyLightVolume, Intensity) ||
 			PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalSkyLightVolume, LightColor) ||
+			PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalSkyLightVolume, IndirectLightingIntensity) ||
+			PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalSkyLightVolume, VolumetricScatteringIntensity) ||
 			PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalSkyLightVolume, bLowerHemisphereIsBlack) ||
 			PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalSkyLightVolume, LowerHemisphereColor))
 		{
@@ -293,6 +335,8 @@ void ALocalSkyLightVolume::PreEditChange(FProperty* PropertyAboutToChange)
 			bCacheOverride_Cubemap = bOverride_Cubemap;
 			bCacheOverride_Intensity = bOverride_Intensity;
 			bCacheOverride_LightColor = bOverride_LightColor;
+			bCacheOverride_IndirectLightingIntensity = bOverride_IndirectLightingIntensity;
+			bCacheOverride_VolumetricScatteringIntensity = bOverride_VolumetricScatteringIntensity;
 			bCacheOverride_bLowerHemisphereIsBlack = bOverride_bLowerHemisphereIsBlack;
 			bCacheOverride_LowerHemisphereColor = bOverride_LowerHemisphereColor;
 		}
@@ -348,6 +392,20 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 					if (CacheLightColor != LightColor)
 					{
 						CacheSkyLight->GetLightComponent()->SetLightColor(FLinearColor::FromSRGBColor(CacheLightColor));
+					}
+				}
+				if (bOverride_IndirectLightingIntensity)
+				{
+					if (CacheIndirectLightingIntensity != IndirectLightingIntensity)
+					{
+						CacheSkyLight->GetLightComponent()->SetIndirectLightingIntensity(CacheIndirectLightingIntensity);
+					}
+				}
+				if (bOverride_VolumetricScatteringIntensity)
+				{
+					if (CacheVolumetricScatteringIntensity != VolumetricScatteringIntensity)
+					{
+						CacheSkyLight->GetLightComponent()->SetVolumetricScatteringIntensity(CacheVolumetricScatteringIntensity);
 					}
 				}
 				if (bOverride_bLowerHemisphereIsBlack)
@@ -465,6 +523,42 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 				}
 			}
 		}
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, IndirectLightingIntensity))
+		{
+			if (SkyLight.IsValid())
+			{
+				if (bOverride_IndirectLightingIntensity)
+				{
+					if (bOverride_IndirectLightingIntensity != bCacheOverride_IndirectLightingIntensity)
+					{
+						CacheIndirectLightingIntensity = SkyLight->GetLightComponent()->IndirectLightingIntensity;
+					}
+					CacheSkyLight->GetLightComponent()->SetIndirectLightingIntensity(IndirectLightingIntensity);
+				}
+				else
+				{
+					CacheSkyLight->GetLightComponent()->SetIndirectLightingIntensity(CacheIndirectLightingIntensity);
+				}
+			}
+		}
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, VolumetricScatteringIntensity))
+		{
+			if (SkyLight.IsValid())
+			{
+				if (bOverride_VolumetricScatteringIntensity)
+				{
+					if (bOverride_VolumetricScatteringIntensity != bCacheOverride_VolumetricScatteringIntensity)
+					{
+						CacheVolumetricScatteringIntensity = SkyLight->GetLightComponent()->VolumetricScatteringIntensity;
+					}
+					CacheSkyLight->GetLightComponent()->SetVolumetricScatteringIntensity(VolumetricScatteringIntensity);
+				}
+				else
+				{
+					CacheSkyLight->GetLightComponent()->SetVolumetricScatteringIntensity(CacheVolumetricScatteringIntensity);
+				}
+			}
+		}
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, bLowerHemisphereIsBlack))
 		{
 			if (SkyLight.IsValid())
@@ -511,7 +605,11 @@ bool ALocalSkyLightVolume::CanEditChange(const FProperty* InProperty) const
 		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, SourceType) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, Cubemap) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, Intensity) ||
-		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, LightColor))
+		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, LightColor) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, IndirectLightingIntensity) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, VolumetricScatteringIntensity) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, bLowerHemisphereIsBlack) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, LowerHemisphereColor))
 	{
 		return SkyLight.IsValid();
 	}
