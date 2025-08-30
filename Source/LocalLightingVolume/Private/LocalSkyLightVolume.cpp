@@ -53,6 +53,8 @@ ALocalSkyLightVolume::ALocalSkyLightVolume(const FObjectInitializer& ObjectIniti
 	bOverride_Cubemap = false;
 	bOverride_Intensity = false;
 	bOverride_LightColor = false;
+	bOverride_IndirectLightingIntensity = false;
+	bOverride_VolumetricScatteringIntensity = false;
 	bOverride_bLowerHemisphereIsBlack = false;
 	bOverride_LowerHemisphereColor = false;
 	
@@ -447,7 +449,7 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 				}
 			}
 		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, SourceType))
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, SourceType))
 		{
 			if (SkyLight.IsValid())
 			{
@@ -469,7 +471,7 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 				}
 			}
 		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, Cubemap))
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, Cubemap))
 		{
 			if (SkyLight.IsValid())
 			{
@@ -487,7 +489,7 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 				}
 			}
 		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, Intensity))
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, Intensity))
 		{
 			if (SkyLight.IsValid())
 			{
@@ -505,7 +507,7 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 				}
 			}
 		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, LightColor))
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, LightColor))
 		{
 			if (SkyLight.IsValid())
 			{
@@ -523,7 +525,7 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 				}
 			}
 		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, IndirectLightingIntensity))
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, IndirectLightingIntensity))
 		{
 			if (SkyLight.IsValid())
 			{
@@ -541,7 +543,7 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 				}
 			}
 		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, VolumetricScatteringIntensity))
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, VolumetricScatteringIntensity))
 		{
 			if (SkyLight.IsValid())
 			{
@@ -559,7 +561,7 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 				}
 			}
 		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, bLowerHemisphereIsBlack))
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, bLowerHemisphereIsBlack))
 		{
 			if (SkyLight.IsValid())
 			{
@@ -577,7 +579,7 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 				}
 			}
 		}
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, LowerHemisphereColor))
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, LowerHemisphereColor))
 		{
 			if (SkyLight.IsValid())
 			{

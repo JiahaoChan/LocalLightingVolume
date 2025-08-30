@@ -16,7 +16,7 @@
 /**
  * Allow to modify Sky Light when View Point in the range of Volume.
  */
-UCLASS(autoexpandcategories = LocalLightingVolume, hidecategories = (Advanced, Collision, Volume, Brush, Attachment), MinimalAPI)
+UCLASS(autoexpandcategories = LocalSkyLightVolume, hidecategories = (Advanced, Collision, Volume, Brush, Attachment), MinimalAPI)
 class ALocalSkyLightVolume : public AVolume, public IInterface_LocalLightingVolume
 {
 	GENERATED_UCLASS_BODY()
@@ -62,7 +62,7 @@ protected:
 	/** 
 	 * Total energy that the light emits.  
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, interp, Category = "Sky Light", meta = (DisplayName = "Intensity", UIMin = "0.0", UIMax = "20.0", ShouldShowInViewport = true, EditCondition = "bOverride_Intensity"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, interp, Category = "Sky Light", meta = (DisplayName = "Intensity Scale", UIMin = "0.0", UIMax = "50000.0", SliderExponent = "10", ShouldShowInViewport = true, EditCondition = "bOverride_Intensity"))
 	float Intensity;
 	
 	/** 
