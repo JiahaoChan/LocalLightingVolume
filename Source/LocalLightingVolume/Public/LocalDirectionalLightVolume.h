@@ -23,6 +23,8 @@ class ALocalDirectionalLightVolume : public AVolume, public IInterface_LocalLigh
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Overrides, meta=(PinHiddenByDefault, InlineEditConditionToggle))
+	uint8 bOverride_Rotation:1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Overrides, meta=(PinHiddenByDefault, InlineEditConditionToggle))
 	uint8 bOverride_Intensity:1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Overrides, meta=(PinHiddenByDefault, InlineEditConditionToggle))
 	uint8 bOverride_LightColor:1;
@@ -35,6 +37,12 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Directional Light")
 	TWeakObjectPtr<class ADirectionalLight> DirectionalLight;
+	
+	/** 
+	 * Directional Light World Rotation.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Directional Light", meta = (EditCondition = "bOverride_Rotation"))
+	FRotator Rotation;
 	
 	/** 
 	 * Maximum illumination from the light in lux.
@@ -65,12 +73,14 @@ protected:
 	
 	UPROPERTY(Transient)
 	TWeakObjectPtr<ADirectionalLight> CacheDirectionalLight;
+	FRotator CacheRotation;
 	float CacheIntensity;
 	FColor CacheLightColor;
 	float CacheIndirectLightingIntensity;
 	float CacheVolumetricScatteringIntensity;
 	
 #if WITH_EDITORONLY_DATA
+	uint8 bCacheOverride_Rotation:1;
 	uint8 bCacheOverride_Intensity:1;
 	uint8 bCacheOverride_LightColor:1;
 	uint8 bCacheOverride_IndirectLightingIntensity:1;

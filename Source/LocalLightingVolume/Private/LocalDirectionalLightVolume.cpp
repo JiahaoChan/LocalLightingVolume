@@ -19,12 +19,14 @@ ALocalDirectionalLightVolume::ALocalDirectionalLightVolume(const FObjectInitiali
 	GetBrushComponent()->bAlwaysCreatePhysicsState = true;
 	GetBrushComponent()->Mobility = EComponentMobility::Movable;
 	
+	bOverride_Rotation = false;
 	bOverride_Intensity = false;
 	bOverride_LightColor = false;
 	bOverride_IndirectLightingIntensity = false;
 	bOverride_VolumetricScatteringIntensity = false;
 	
 	DirectionalLight = nullptr;
+	Rotation = FRotator(-46.0f, 0.0f, 0.0f);
 	Intensity = 1.0f;
 	LightColor = FColor::White;
 	IndirectLightingIntensity = 1.0f;
@@ -34,12 +36,14 @@ ALocalDirectionalLightVolume::ALocalDirectionalLightVolume(const FObjectInitiali
 	bOverridingLighting = false;
 	
 	CacheDirectionalLight = nullptr;
+	CacheRotation = FRotator(-46.0f, 0.0f, 0.0f);
 	CacheIntensity = 1.0f;
 	CacheLightColor = FColor::White;
 	CacheIndirectLightingIntensity = 1.0f;
 	CacheVolumetricScatteringIntensity = 1.0f;
 	
 #if WITH_EDITORONLY_DATA
+	bCacheOverride_Rotation = false;
 	bCacheOverride_Intensity = false;
 	bCacheOverride_LightColor = false;
 	bCacheOverride_IndirectLightingIntensity = false;
@@ -90,6 +94,15 @@ void ALocalDirectionalLightVolume::OverrideLighting()
 	bOverridingLighting = false;
 	if (DirectionalLight.IsValid())
 	{
+		if (bOverride_Rotation)
+		{
+			CacheRotation = DirectionalLight->GetLightComponent()->GetComponentTransform().Rotator();
+			if (CacheRotation != Rotation)
+			{
+				DirectionalLight->GetLightComponent()->SetWorldRotation(Rotation);
+				bOverridingLighting |= true;
+			}
+		}
 		if (bOverride_Intensity)
 		{
 			CacheIntensity = DirectionalLight->GetLightComponent()->Intensity;
@@ -133,6 +146,13 @@ void ALocalDirectionalLightVolume::RestoreLighting()
 {
 	if (DirectionalLight.IsValid())
 	{
+		if (bOverride_Rotation)
+		{
+			if (CacheRotation != Rotation)
+			{
+				DirectionalLight->GetLightComponent()->SetWorldRotation(CacheRotation);
+			}
+		}
 		if (bOverride_Intensity)
 		{
 			if (CacheIntensity != Intensity)
@@ -189,11 +209,13 @@ void ALocalDirectionalLightVolume::PreEditChange(FProperty* PropertyAboutToChang
 		{
 			CacheDirectionalLight = DirectionalLight;
 		}
-		if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalDirectionalLightVolume, Intensity) ||
+		if (PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalDirectionalLightVolume, Rotation) ||
+			PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalDirectionalLightVolume, Intensity) ||
 			PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalDirectionalLightVolume, LightColor) ||
 			PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalDirectionalLightVolume, IndirectLightingIntensity) ||
 			PropertyName == GET_MEMBER_NAME_STRING_CHECKED(ALocalDirectionalLightVolume, VolumetricScatteringIntensity))
 		{
+			bCacheOverride_Rotation = bOverride_Rotation;
 			bCacheOverride_Intensity = bOverride_Intensity;
 			bCacheOverride_LightColor = bOverride_LightColor;
 			bCacheOverride_IndirectLightingIntensity = bOverride_IndirectLightingIntensity;
@@ -216,6 +238,13 @@ void ALocalDirectionalLightVolume::PostEditChangeProperty(FPropertyChangedEvent&
 			// Restore lighting to previous Directional Light.
 			if (CacheDirectionalLight.IsValid())
 			{
+				if (bOverride_Rotation)
+				{
+					if (CacheRotation != Rotation)
+					{
+						CacheDirectionalLight->GetLightComponent()->SetWorldRotation(CacheRotation);
+					}
+				}
 				if (bOverride_Intensity)
 				{
 					if (CacheIntensity != Intensity)
@@ -251,7 +280,25 @@ void ALocalDirectionalLightVolume::PostEditChangeProperty(FPropertyChangedEvent&
 	
 	if (bViewPointInVolume)
 	{
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalDirectionalLightVolume, Intensity))
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalDirectionalLightVolume, Rotation))
+		{
+			if (DirectionalLight.IsValid())
+			{
+				if (bOverride_Rotation)
+				{
+					if (bOverride_Rotation != bCacheOverride_Rotation)
+					{
+						CacheRotation = DirectionalLight->GetLightComponent()->GetComponentTransform().Rotator();
+					}
+					DirectionalLight->GetLightComponent()->SetWorldRotation(Rotation);
+				}
+				else
+				{
+					DirectionalLight->GetLightComponent()->SetWorldRotation(CacheRotation);
+				}
+			}
+		}
+		else if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalDirectionalLightVolume, Intensity))
 		{
 			if (DirectionalLight.IsValid())
 			{
@@ -329,7 +376,8 @@ void ALocalDirectionalLightVolume::PostEditChangeProperty(FPropertyChangedEvent&
 bool ALocalDirectionalLightVolume::CanEditChange(const FProperty* InProperty) const
 {
 	const FName PropertyName = InProperty->GetFName();
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalDirectionalLightVolume, Intensity) ||
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalDirectionalLightVolume, Rotation) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalDirectionalLightVolume, Intensity) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalDirectionalLightVolume, LightColor) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalDirectionalLightVolume, IndirectLightingIntensity) ||
 		PropertyName == GET_MEMBER_NAME_CHECKED(ALocalDirectionalLightVolume, VolumetricScatteringIntensity))
