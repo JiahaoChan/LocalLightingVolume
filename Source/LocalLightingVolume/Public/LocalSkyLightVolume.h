@@ -126,10 +126,11 @@ public:
 	//~ Begin IInterface_LocalLightingVolume Interface
 	virtual void Process(const FVector& ViewPoint) override;
 	virtual bool IsOverridingLighting() override;
-	
-	virtual void RegisterIntoSubsystem() override;
-	virtual void UnregisterFromSubsystem() override;
 	//~ End IInterface_LocalLightingVolume Interface
+	
+private:
+	void RegisterIntoSubsystem();
+	void UnregisterFromSubsystem();
 	
 protected:
 	virtual void OverrideLighting();
