@@ -9,6 +9,7 @@
 #include "Components/BrushComponent.h"
 #include "Components/LightComponent.h"
 #include "Engine/DirectionalLight.h"
+#include "UObject/ObjectSaveContext.h"
 
 #include "LocalLightingSubsystem.h"
 
@@ -35,7 +36,6 @@ ALocalDirectionalLightVolume::ALocalDirectionalLightVolume(const FObjectInitiali
 	bViewPointInVolume = false;
 	bOverridingLighting = false;
 	
-	CacheDirectionalLight = nullptr;
 	CacheRotation = FRotator(-46.0f, 0.0f, 0.0f);
 	CacheIntensity = 1.0f;
 	CacheLightColor = FColor::White;
@@ -43,6 +43,7 @@ ALocalDirectionalLightVolume::ALocalDirectionalLightVolume(const FObjectInitiali
 	CacheVolumetricScatteringIntensity = 1.0f;
 	
 #if WITH_EDITORONLY_DATA
+	CacheDirectionalLight = nullptr;
 	bCacheOverride_Rotation = false;
 	bCacheOverride_Intensity = false;
 	bCacheOverride_LightColor = false;
@@ -189,6 +190,10 @@ void ALocalDirectionalLightVolume::PostRegisterAllComponents()
 {
  	Super::PostRegisterAllComponents();
 	
+#if WITH_EDITOR
+	PreSaveHandle = UPackage::PreSavePackageWithContextEvent.AddUObject(this, &ALocalDirectionalLightVolume::OnOverridingLightComponentPackagePreSave);
+	SavedHandle = UPackage::PackageSavedWithContextEvent.AddUObject(this, &ALocalDirectionalLightVolume::OnOverridingLightComponentPackageSaved);
+#endif
 	RegisterIntoSubsystem();
 }
 
@@ -196,10 +201,40 @@ void ALocalDirectionalLightVolume::PostUnregisterAllComponents()
 {
 	Super::PostUnregisterAllComponents();
 	
+#if WITH_EDITOR
+	UPackage::PreSavePackageWithContextEvent.Remove(PreSaveHandle);
+	UPackage::PackageSavedWithContextEvent.Remove(SavedHandle);
+#endif
+	UnregisterFromSubsystem();
 	UnregisterFromSubsystem();
 }
 
 #if WITH_EDITOR
+void ALocalDirectionalLightVolume::OnOverridingLightComponentPackagePreSave(UPackage* Package, FObjectPreSaveContext Context)
+{
+	// We can assert that this Volume and other light components are all in the same UWorld package.
+	if (Package == GetOutermost())
+	{
+		if (IsOverridingLighting())
+		{
+			// We can not be overriding any light component when they are saved.
+			RestoreLighting();
+		}
+	}
+}
+
+void ALocalDirectionalLightVolume::OnOverridingLightComponentPackageSaved(const FString& FileName, UPackage* Package, FObjectPostSaveContext Context)
+{
+	// We can assert that this Volume and other light components are all in the same UWorld package.
+	if (Package == GetOutermost())
+	{
+		if (bViewPointInVolume)
+		{
+			OverrideLighting();
+		}
+	}
+}
+
 void ALocalDirectionalLightVolume::PreEditChange(FProperty* PropertyAboutToChange)
 {
 	if (PropertyAboutToChange)

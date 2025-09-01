@@ -13,6 +13,13 @@ ULocalLightingSubsystem::ULocalLightingSubsystem()
 	
 }
 
+bool ULocalLightingSubsystem::ShouldCreateSubsystem(UObject* Outer) const
+{
+	TArray<UClass*> DerivedClasses;
+	GetDerivedClasses(StaticClass(), DerivedClasses);
+	return DerivedClasses.Num() == 0;
+}
+
 void ULocalLightingSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);

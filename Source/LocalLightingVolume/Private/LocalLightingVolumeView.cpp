@@ -19,11 +19,14 @@ FLocalLightingVolumeViewExtension::FLocalLightingVolumeViewExtension(const FAuto
 
 void FLocalLightingVolumeViewExtension::SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView)
 {
-	if (UWorld* World = InViewFamily.Scene->GetWorld())
+	if (InViewFamily.Scene)
 	{
-		if (ULocalLightingSubsystem* Subsystem = ULocalLightingSubsystem::Get(World))
-		{
-			Subsystem->ProcessVolume(InView.ViewLocation);
-		}
+		if (UWorld* World = InViewFamily.Scene->GetWorld())
+        {
+        	if (ULocalLightingSubsystem* Subsystem = ULocalLightingSubsystem::Get(World))
+        	{
+        		Subsystem->ProcessVolume(InView.ViewLocation);
+        	}
+        }
 	}
 }

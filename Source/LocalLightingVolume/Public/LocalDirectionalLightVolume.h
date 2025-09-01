@@ -71,8 +71,6 @@ protected:
 	bool bViewPointInVolume;
 	bool bOverridingLighting;
 	
-	UPROPERTY(Transient)
-	TWeakObjectPtr<ADirectionalLight> CacheDirectionalLight;
 	FRotator CacheRotation;
 	float CacheIntensity;
 	FColor CacheLightColor;
@@ -80,6 +78,8 @@ protected:
 	float CacheVolumetricScatteringIntensity;
 	
 #if WITH_EDITORONLY_DATA
+	UPROPERTY(Transient)
+	TWeakObjectPtr<ADirectionalLight> CacheDirectionalLight;
 	uint8 bCacheOverride_Rotation:1;
 	uint8 bCacheOverride_Intensity:1;
 	uint8 bCacheOverride_LightColor:1;
@@ -105,6 +105,13 @@ public:
 	virtual void PostRegisterAllComponents() override;
     virtual void PostUnregisterAllComponents() override;
     //~ End AActor Interface
+	
+#if WITH_EDITOR
+	FDelegateHandle PreSaveHandle;
+	void OnOverridingLightComponentPackagePreSave(UPackage* Package, FObjectPreSaveContext Context);
+	FDelegateHandle SavedHandle;
+	void OnOverridingLightComponentPackageSaved(const FString& FileName, UPackage* Package, FObjectPostSaveContext Context);
+#endif
 	
     //~ Begin UObject Interface
 #if WITH_EDITOR

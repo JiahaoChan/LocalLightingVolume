@@ -62,7 +62,7 @@ protected:
 	/** 
 	 * Total energy that the light emits.  
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, interp, Category = "Sky Light", meta = (DisplayName = "Intensity Scale", UIMin = "0.0", UIMax = "50000.0", SliderExponent = "10", ShouldShowInViewport = true, EditCondition = "bOverride_Intensity"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, interp, Category = "Sky Light", meta = (DisplayName = "Intensity Scale", UIMin = "0.0", UIMax = "50000.0", SliderExponent = "10.0", ShouldShowInViewport = true, EditCondition = "bOverride_Intensity"))
 	float Intensity;
 	
 	/** 
@@ -97,8 +97,6 @@ protected:
 	bool bViewPointInVolume;
 	bool bOverridingLighting;
 	
-	UPROPERTY(Transient)
-	TWeakObjectPtr<ASkyLight> CacheSkyLight;
 	bool bCacheRealTimeCapture;
 	TEnumAsByte<ESkyLightSourceType> CacheSourceType;
 	UPROPERTY(Transient)
@@ -111,6 +109,8 @@ protected:
 	FLinearColor CacheLowerHemisphereColor;
 	
 #if WITH_EDITORONLY_DATA
+	UPROPERTY(Transient)
+	TWeakObjectPtr<ASkyLight> CacheSkyLight;
 	uint8 bCacheOverride_bRealTimeCapture:1;
 	uint8 bCacheOverride_SourceType:1;
 	uint8 bCacheOverride_Cubemap:1;
@@ -140,6 +140,13 @@ public:
 	virtual void PostRegisterAllComponents() override;
     virtual void PostUnregisterAllComponents() override;
     //~ End AActor Interface
+	
+#if WITH_EDITOR
+	FDelegateHandle PreSaveHandle;
+	void OnOverridingLightComponentPackagePreSave(UPackage* Package, FObjectPreSaveContext Context);
+	FDelegateHandle SavedHandle;
+	void OnOverridingLightComponentPackageSaved(const FString& FileName, UPackage* Package, FObjectPostSaveContext Context);
+#endif
 	
     //~ Begin UObject Interface
 #if WITH_EDITOR
