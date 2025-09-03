@@ -114,7 +114,7 @@ void ALocalSkyLightVolume::Process(const FVector& ViewPoint)
 	}
 }
 
-bool ALocalSkyLightVolume::IsOverridingLighting()
+bool ALocalSkyLightVolume::IsOverridingLighting() const
 {
 	return bOverridingLighting;
 }

@@ -69,7 +69,7 @@ void ALocalDirectionalLightVolume::Process(const FVector& ViewPoint)
 	}
 }
 
-bool ALocalDirectionalLightVolume::IsOverridingLighting()
+bool ALocalDirectionalLightVolume::IsOverridingLighting() const
 {
 	return bOverridingLighting;
 }

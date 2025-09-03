@@ -35,7 +35,12 @@ ULocalLightingSubsystem* ULocalLightingSubsystem::Get(UObject* WorldContextObjec
 
 void ULocalLightingSubsystem::ProcessVolume(const FVector& ViewPoint)
 {
-	for (IInterface_LocalLightingVolume* Volume : Volumes)
+	TArray<IInterface_LocalLightingVolume*> SortedList = Volumes;
+	SortedList.StableSort([](const IInterface_LocalLightingVolume& A, const IInterface_LocalLightingVolume& B)
+	{
+		return A.IsOverridingLighting() && !B.IsOverridingLighting();
+	});
+	for (IInterface_LocalLightingVolume* Volume : SortedList)
 	{
 		if (Volume)
 		{

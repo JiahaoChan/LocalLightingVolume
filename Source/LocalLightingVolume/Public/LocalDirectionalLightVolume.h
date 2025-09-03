@@ -90,7 +90,7 @@ protected:
 public:
 	//~ Begin IInterface_LocalLightingVolume Interface
 	virtual void Process(const FVector& ViewPoint) override;
-	virtual bool IsOverridingLighting() override;
+	virtual bool IsOverridingLighting() const override;
 	//~ End IInterface_LocalLightingVolume Interface
 	
 private:

@@ -23,5 +23,5 @@ class IInterface_LocalLightingVolume
 	
 public:
 	virtual void Process(const FVector& ViewPoint) = 0;
-	virtual bool IsOverridingLighting() = 0;
+	virtual bool IsOverridingLighting() const = 0;
 };
