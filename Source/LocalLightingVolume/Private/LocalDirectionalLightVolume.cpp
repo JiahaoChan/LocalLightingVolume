@@ -1,47 +1,46 @@
+// Copyright Technical Artist - Jiahao.Chan, Individual. All Rights Reserved.
+
 /**
- * Plugin LocalLightingVolume
+ * Plugin LocalLightingVolume:
  *		Allow to modify global Light Component such as Sky Light & Directional Light when View Point in the range of Volume.
- * Copyright Technical Artist - Jiahao.Chan, Individual. All Rights Reserved.
  */
 
+// Header Include
 #include "LocalDirectionalLightVolume.h"
 
+// Engine Include
 #include "Components/BrushComponent.h"
 #include "Components/LightComponent.h"
 #include "Engine/DirectionalLight.h"
-#include "UObject/ObjectSaveContext.h"
 
+// Plugins Include
 #include "LocalLightingSubsystem.h"
 
-ALocalDirectionalLightVolume::ALocalDirectionalLightVolume(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+ALocalDirectionalLightVolume::ALocalDirectionalLightVolume()
 {
 	GetBrushComponent()->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
 	GetBrushComponent()->bAlwaysCreatePhysicsState = true;
 	GetBrushComponent()->Mobility = EComponentMobility::Movable;
-	
+
 	bOverride_Rotation = false;
 	bOverride_Intensity = false;
 	bOverride_LightColor = false;
 	bOverride_IndirectLightingIntensity = false;
 	bOverride_VolumetricScatteringIntensity = false;
-	
+
 	DirectionalLight = nullptr;
 	Rotation = FRotator(-46.0f, 0.0f, 0.0f);
 	Intensity = 1.0f;
 	LightColor = FColor::White;
 	IndirectLightingIntensity = 1.0f;
 	VolumetricScatteringIntensity = 1.0f;
-	
-	bViewPointInVolume = false;
-	bOverridingLighting = false;
-	
+
 	CacheRotation = FRotator(-46.0f, 0.0f, 0.0f);
 	CacheIntensity = 1.0f;
 	CacheLightColor = FColor::White;
 	CacheIndirectLightingIntensity = 1.0f;
 	CacheVolumetricScatteringIntensity = 1.0f;
-	
+
 #if WITH_EDITORONLY_DATA
 	CacheDirectionalLight = nullptr;
 	bCacheOverride_Rotation = false;
@@ -50,44 +49,6 @@ ALocalDirectionalLightVolume::ALocalDirectionalLightVolume(const FObjectInitiali
 	bCacheOverride_IndirectLightingIntensity = false;
 	bCacheOverride_VolumetricScatteringIntensity = false;
 #endif
-}
-
-void ALocalDirectionalLightVolume::Process(const FVector& ViewPoint)
-{
-	bool bViewPointInVolumeLastTime = bViewPointInVolume;
-	bViewPointInVolume = EncompassesPoint(ViewPoint);
-	if (bViewPointInVolumeLastTime != bViewPointInVolume)
-	{
-		if (bViewPointInVolume)
-		{
-			OverrideLighting();
-		}
-		else
-		{
-			RestoreLighting();
-		}
-	}
-}
-
-bool ALocalDirectionalLightVolume::IsOverridingLighting() const
-{
-	return bOverridingLighting;
-}
-
-void ALocalDirectionalLightVolume::RegisterIntoSubsystem()
-{
-	if (ULocalLightingSubsystem* Subsystem = ULocalLightingSubsystem::Get(this))
-	{
-		Subsystem->RegisterVolume(this);
-	}
-}
-
-void ALocalDirectionalLightVolume::UnregisterFromSubsystem()
-{
-	if (ULocalLightingSubsystem* Subsystem = ULocalLightingSubsystem::Get(this))
-	{
-		Subsystem->UnregisterVolume(this);
-	}
 }
 
 void ALocalDirectionalLightVolume::OverrideLighting()
@@ -186,55 +147,7 @@ void ALocalDirectionalLightVolume::RestoreLighting()
 	bOverridingLighting = false;
 }
 
-void ALocalDirectionalLightVolume::PostRegisterAllComponents()
-{
- 	Super::PostRegisterAllComponents();
-	
 #if WITH_EDITOR
-	PreSaveHandle = UPackage::PreSavePackageWithContextEvent.AddUObject(this, &ALocalDirectionalLightVolume::OnOverridingLightComponentPackagePreSave);
-	SavedHandle = UPackage::PackageSavedWithContextEvent.AddUObject(this, &ALocalDirectionalLightVolume::OnOverridingLightComponentPackageSaved);
-#endif
-	RegisterIntoSubsystem();
-}
-
-void ALocalDirectionalLightVolume::PostUnregisterAllComponents()
-{
-	Super::PostUnregisterAllComponents();
-	
-#if WITH_EDITOR
-	UPackage::PreSavePackageWithContextEvent.Remove(PreSaveHandle);
-	UPackage::PackageSavedWithContextEvent.Remove(SavedHandle);
-#endif
-	UnregisterFromSubsystem();
-	UnregisterFromSubsystem();
-}
-
-#if WITH_EDITOR
-void ALocalDirectionalLightVolume::OnOverridingLightComponentPackagePreSave(UPackage* Package, FObjectPreSaveContext Context)
-{
-	// We can assert that this Volume and other light components are all in the same UWorld package.
-	if (Package == GetOutermost())
-	{
-		if (IsOverridingLighting())
-		{
-			// We can not be overriding any light component when they are saved.
-			RestoreLighting();
-		}
-	}
-}
-
-void ALocalDirectionalLightVolume::OnOverridingLightComponentPackageSaved(const FString& FileName, UPackage* Package, FObjectPostSaveContext Context)
-{
-	// We can assert that this Volume and other light components are all in the same UWorld package.
-	if (Package == GetOutermost())
-	{
-		if (bViewPointInVolume)
-		{
-			OverrideLighting();
-		}
-	}
-}
-
 void ALocalDirectionalLightVolume::PreEditChange(FProperty* PropertyAboutToChange)
 {
 	if (PropertyAboutToChange)
@@ -263,9 +176,10 @@ void ALocalDirectionalLightVolume::PreEditChange(FProperty* PropertyAboutToChang
 void ALocalDirectionalLightVolume::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	
-	const FName PropertyName = PropertyChangedEvent.MemberProperty ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
-	
+
+	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
+	const FName MemberPropertyName = PropertyChangedEvent.GetMemberPropertyName();
+
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalDirectionalLightVolume, DirectionalLight))
 	{
 		if (bViewPointInVolume && CacheDirectionalLight != DirectionalLight)
@@ -312,7 +226,7 @@ void ALocalDirectionalLightVolume::PostEditChangeProperty(FPropertyChangedEvent&
 			OverrideLighting();
 		}
 	}
-	
+
 	if (bViewPointInVolume)
 	{
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalDirectionalLightVolume, Rotation))
@@ -419,7 +333,7 @@ bool ALocalDirectionalLightVolume::CanEditChange(const FProperty* InProperty) co
 	{
 		return DirectionalLight.IsValid();
 	}
-	
+
 	return Super::CanEditChange(InProperty);
 }
 #endif

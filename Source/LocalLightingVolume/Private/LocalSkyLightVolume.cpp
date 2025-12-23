@@ -1,16 +1,18 @@
+// Copyright Technical Artist - Jiahao.Chan, Individual. All Rights Reserved.
+
 /**
- * Plugin LocalLightingVolume
+ * Plugin LocalLightingVolume:
  *		Allow to modify global Light Component such as Sky Light & Directional Light when View Point in the range of Volume.
- * Copyright Technical Artist - Jiahao.Chan, Individual. All Rights Reserved.
  */
 
+// Header Include
 #include "LocalSkyLightVolume.h"
 
+// Engine Include
 #include "Components/BrushComponent.h"
-#include "Components/SkyLightComponent.h"
 #include "Engine/SkyLight.h"
-#include "UObject/ObjectSaveContext.h"
 
+// Plugins Include
 #include "LocalLightingSubsystem.h"
 
 /**
@@ -23,7 +25,7 @@ void SetLowerHemisphereIsBlack(USkyLightComponent* SkyLightComponent, bool InbLo
 	{
 		return;
 	}
-	
+
 	// Can't set on a static light
 	auto AreDynamicDataChangesAllowed = [](const USkyLightComponent* Component, bool bIgnoreStationary = true)
 	{
@@ -33,7 +35,7 @@ void SetLowerHemisphereIsBlack(USkyLightComponent* SkyLightComponent, bool InbLo
 		}
 		return (Component->IsOwnerRunningUserConstructionScript()) || !(Component->IsRegistered() && (Component->Mobility == EComponentMobility::Static || (!bIgnoreStationary && Component->Mobility == EComponentMobility::Stationary)));
 	};
-	
+
 	if (AreDynamicDataChangesAllowed(SkyLightComponent) && SkyLightComponent->bLowerHemisphereIsBlack != InbLowerHemisphereIsBlack)
 	{
 		SkyLightComponent->bLowerHemisphereIsBlack = InbLowerHemisphereIsBlack;
@@ -42,13 +44,12 @@ void SetLowerHemisphereIsBlack(USkyLightComponent* SkyLightComponent, bool InbLo
 	}
 }
 
-ALocalSkyLightVolume::ALocalSkyLightVolume(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+ALocalSkyLightVolume::ALocalSkyLightVolume()
 {
 	GetBrushComponent()->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
 	GetBrushComponent()->bAlwaysCreatePhysicsState = true;
 	GetBrushComponent()->Mobility = EComponentMobility::Movable;
-	
+
 	bOverride_bRealTimeCapture = false;
 	bOverride_SourceType = false;
 	bOverride_Cubemap = false;
@@ -58,7 +59,7 @@ ALocalSkyLightVolume::ALocalSkyLightVolume(const FObjectInitializer& ObjectIniti
 	bOverride_VolumetricScatteringIntensity = false;
 	bOverride_bLowerHemisphereIsBlack = false;
 	bOverride_LowerHemisphereColor = false;
-	
+
 	SkyLight = nullptr;
 	bRealTimeCapture = false;
 	SourceType = SLS_CapturedScene;
@@ -69,10 +70,7 @@ ALocalSkyLightVolume::ALocalSkyLightVolume(const FObjectInitializer& ObjectIniti
 	VolumetricScatteringIntensity = 1.0f;
 	bLowerHemisphereIsBlack = true;
 	LowerHemisphereColor = FLinearColor::Black;
-	
-	bViewPointInVolume = false;
-	bOverridingLighting = false;
-	
+
 	bCacheRealTimeCapture = false;
 	CacheSourceType = SLS_CapturedScene;
 	CacheCubemap = nullptr;
@@ -82,7 +80,7 @@ ALocalSkyLightVolume::ALocalSkyLightVolume(const FObjectInitializer& ObjectIniti
 	CacheVolumetricScatteringIntensity = 1.0f;
 	bCacheLowerHemisphereIsBlack = true;
 	CacheLowerHemisphereColor = FLinearColor::Black;
-	
+
 #if WITH_EDITORONLY_DATA
 	CacheSkyLight = nullptr;
 	bCacheOverride_bRealTimeCapture = false;
@@ -95,44 +93,6 @@ ALocalSkyLightVolume::ALocalSkyLightVolume(const FObjectInitializer& ObjectIniti
 	bCacheOverride_bLowerHemisphereIsBlack = false;
 	bCacheOverride_LowerHemisphereColor = false;
 #endif
-}
-
-void ALocalSkyLightVolume::Process(const FVector& ViewPoint)
-{
-	bool bViewPointInVolumeLastTime = bViewPointInVolume;
-	bViewPointInVolume = EncompassesPoint(ViewPoint);
-	if (bViewPointInVolumeLastTime != bViewPointInVolume)
-	{
-		if (bViewPointInVolume)
-		{
-			OverrideLighting();
-		}
-		else
-		{
-			RestoreLighting();
-		}
-	}
-}
-
-bool ALocalSkyLightVolume::IsOverridingLighting() const
-{
-	return bOverridingLighting;
-}
-
-void ALocalSkyLightVolume::RegisterIntoSubsystem()
-{
-	if (ULocalLightingSubsystem* Subsystem = ULocalLightingSubsystem::Get(this))
-	{
-		Subsystem->RegisterVolume(this);
-	}
-}
-
-void ALocalSkyLightVolume::UnregisterFromSubsystem()
-{
-	if (ULocalLightingSubsystem* Subsystem = ULocalLightingSubsystem::Get(this))
-	{
-		Subsystem->UnregisterVolume(this);
-	}
 }
 
 void ALocalSkyLightVolume::OverrideLighting()
@@ -299,54 +259,7 @@ void ALocalSkyLightVolume::RestoreLighting()
 	bOverridingLighting = false;
 }
 
-void ALocalSkyLightVolume::PostRegisterAllComponents()
-{
- 	Super::PostRegisterAllComponents();
-	
 #if WITH_EDITOR
-	PreSaveHandle = UPackage::PreSavePackageWithContextEvent.AddUObject(this, &ALocalSkyLightVolume::OnOverridingLightComponentPackagePreSave);
-	SavedHandle = UPackage::PackageSavedWithContextEvent.AddUObject(this, &ALocalSkyLightVolume::OnOverridingLightComponentPackageSaved);
-#endif
-	RegisterIntoSubsystem();
-}
-
-void ALocalSkyLightVolume::PostUnregisterAllComponents()
-{
-	Super::PostUnregisterAllComponents();
-	
-#if WITH_EDITOR
-	UPackage::PreSavePackageWithContextEvent.Remove(PreSaveHandle);
-	UPackage::PackageSavedWithContextEvent.Remove(SavedHandle);
-#endif
-	UnregisterFromSubsystem();
-}
-
-#if WITH_EDITOR
-void ALocalSkyLightVolume::OnOverridingLightComponentPackagePreSave(UPackage* Package, FObjectPreSaveContext Context)
-{
-	// We can assert that this Volume and other light components are all in the same UWorld package.
-	if (Package == GetOutermost())
-	{
-		if (IsOverridingLighting())
-		{
-			// We can not be overriding any light component when they are saved.
-			RestoreLighting();
-		}
-	}
-}
-
-void ALocalSkyLightVolume::OnOverridingLightComponentPackageSaved(const FString& FileName, UPackage* Package, FObjectPostSaveContext Context)
-{
-	// We can assert that this Volume and other light components are all in the same UWorld package.
-	if (Package == GetOutermost())
-	{
-		if (bViewPointInVolume)
-		{
-			OverrideLighting();
-		}
-	}
-}
-
 void ALocalSkyLightVolume::PreEditChange(FProperty* PropertyAboutToChange)
 {
 	if (PropertyAboutToChange)
@@ -383,9 +296,10 @@ void ALocalSkyLightVolume::PreEditChange(FProperty* PropertyAboutToChange)
 void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	
-	const FName PropertyName = PropertyChangedEvent.MemberProperty ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
-	
+
+	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
+	const FName MemberPropertyName = PropertyChangedEvent.GetMemberPropertyName();
+
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, SkyLight))
 	{
 		if (bViewPointInVolume && CacheSkyLight != SkyLight)
@@ -462,7 +376,7 @@ void ALocalSkyLightVolume::PostEditChangeProperty(FPropertyChangedEvent& Propert
 			OverrideLighting();
 		}
 	}
-	
+
 	if (bViewPointInVolume)
 	{
 		if (PropertyName == GET_MEMBER_NAME_CHECKED(ALocalSkyLightVolume, bRealTimeCapture))
@@ -649,7 +563,7 @@ bool ALocalSkyLightVolume::CanEditChange(const FProperty* InProperty) const
 	{
 		return SkyLight.IsValid();
 	}
-	
+
 	return Super::CanEditChange(InProperty);
 }
 #endif
