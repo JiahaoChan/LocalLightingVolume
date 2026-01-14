@@ -18,7 +18,7 @@ ULocalLightingSubsystem::ULocalLightingSubsystem()
 bool ULocalLightingSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
 	TArray<UClass*> DerivedClasses;
-	GetDerivedClasses(StaticClass(), DerivedClasses);
+	GetDerivedClasses(GetClass(), DerivedClasses);
 	return DerivedClasses.Num() == 0;
 }
 
